@@ -64,7 +64,6 @@ static const struct sunxi_desc_pin sun50i_h5_pins[] = {
 		  SUNXI_FUNCTION(0x0, "gpio_in"),
 		  SUNXI_FUNCTION(0x1, "gpio_out"),
 		  SUNXI_FUNCTION(0x2, "sim"),		/* PWREN */
-                  SUNXI_FUNCTION(0x3, "i2s0"),		/* I2S0 MCLK */
 		  SUNXI_FUNCTION_IRQ_BANK(0x6, 0, 6)),	/* PA_EINT6 */
 	SUNXI_PIN(SUNXI_PINCTRL_PIN(A, 7),
 		  SUNXI_FUNCTION(0x0, "gpio_in"),
