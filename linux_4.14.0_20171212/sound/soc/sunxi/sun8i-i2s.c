@@ -75,9 +75,11 @@
 	#define I2S_FAT0_H3_BCLK_POLARITY	BIT(7)
 	#define I2S_FAT0_H3_SR_16		(3 << 4)
 	#define I2S_FAT0_H3_SR_24		(5 << 4)
+	#define I2S_FAT0_H3_SR(v)		(((v>>2)-1) << 4) 
 	#define I2S_FAT0_H3_SR_MSK		(7 << 4)
 	#define I2S_FAT0_H3_SW_16		(3 << 0)
 	#define I2S_FAT0_H3_SW_32		(7 << 0)
+	#define I2S_FAT0_H3_SW(v)		(((v>>2)-1) << 0) 
 	#define I2S_FAT0_H3_SW_MSK		(7 << 0)
 
 #define I2S_FAT1		0x08
@@ -416,10 +418,16 @@ static int sun8i_i2s_hw_params(struct snd_pcm_substream *substream,
 		sample_resolution = 16;
 		break;
 	case SNDRV_PCM_FORMAT_S20_3LE:
+		priv->playback_dma_data.addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
+		sample_resolution = 20;
+		break;
 	case SNDRV_PCM_FORMAT_S24_LE:
-	case SNDRV_PCM_FORMAT_S32_LE:
 		priv->playback_dma_data.addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
 		sample_resolution = 24;
+		break;
+	case SNDRV_PCM_FORMAT_S32_LE:
+		priv->playback_dma_data.addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
+		sample_resolution = 32;
 		break;
 	default:
 		return -EINVAL;
@@ -454,10 +462,10 @@ static int sun8i_i2s_hw_params(struct snd_pcm_substream *substream,
 		} else {
 			regmap_update_bits(priv->regmap, I2S_FAT0,
 					   I2S_FAT0_H3_SR_MSK | I2S_FAT0_H3_SW_MSK,
-					   I2S_FAT0_H3_SR_24 | I2S_FAT0_H3_SW_32);
+					   I2S_FAT0_H3_SR(sample_resolution) | I2S_FAT0_H3_SW_32);
 			regmap_update_bits(priv->regmap, I2S_FCTL,
 					   I2S_FCTL_TXIM,
-					   0);
+					   I2S_FCTL_TXIM);
 		}
 	}
 
@@ -739,9 +747,9 @@ static struct snd_soc_dai_driver sun8i_i2s_dai = {
 		.stream_name = "Playback",
 		.channels_min = 1,
 		.channels_max = 8,
-		.rates = SNDRV_PCM_RATE_8000_192000 | SNDRV_PCM_RATE_KNOT,
+		.rates = SNDRV_PCM_RATE_8000_384000 | SNDRV_PCM_RATE_KNOT,
 		.rate_min = 8000,
-		.rate_max = 192000,
+		.rate_max = 384000,
 		.formats = I2S_FORMATS,
 	},
 	.ops = &sun8i_i2s_dai_ops,
@@ -759,9 +767,9 @@ static const struct snd_pcm_hardware sun8i_i2s_pcm_hardware = {
 		SNDRV_PCM_INFO_MMAP | SNDRV_PCM_INFO_MMAP_VALID |
 		SNDRV_PCM_INFO_PAUSE | SNDRV_PCM_INFO_RESUME,
 	.formats = I2S_FORMATS,
-	.rates = SNDRV_PCM_RATE_8000_192000 | SNDRV_PCM_RATE_KNOT,
+	.rates = SNDRV_PCM_RATE_8000_384000 | SNDRV_PCM_RATE_KNOT,
 	.rate_min = 8000,
-	.rate_max = 192000,
+	.rate_max = 384000,
 	.channels_min = 1,
 	.channels_max = 8,
 	.buffer_bytes_max = 1024 * 1024,

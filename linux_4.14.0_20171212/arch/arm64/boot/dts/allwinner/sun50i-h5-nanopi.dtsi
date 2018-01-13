@@ -206,7 +206,7 @@
         function = "gpio_out";
     };
     spi0_cs_pins: spi0_cs_pins {
-        pins = "PC3", "PA6";
+        pins = "PC3";
         function = "gpio_out";
     };
 };
