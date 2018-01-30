@@ -250,6 +250,13 @@ static int sun8i_i2s_set_clock(struct priv *priv, unsigned long rate)
 	else
 		freq = 22579200;
 	div = freq / 2 / PCM_LRCK_PERIOD / rate;
+	
+	if( div == 0 )
+	{
+		freq	*= 2;
+		div		= 1;
+	}
+	
 	if (priv->type == SOC_A83T)
 		div /= 2;			/* bclk_div==0 => mclk/2 */
 	for (i = 0; i < ARRAY_SIZE(div_tb) - 1; i++)
@@ -747,9 +754,9 @@ static struct snd_soc_dai_driver sun8i_i2s_dai = {
 		.stream_name = "Playback",
 		.channels_min = 1,
 		.channels_max = 8,
-		.rates = SNDRV_PCM_RATE_8000_384000 | SNDRV_PCM_RATE_KNOT,
+		.rates = SNDRV_PCM_RATE_8000_768000 | SNDRV_PCM_RATE_KNOT,
 		.rate_min = 8000,
-		.rate_max = 384000,
+		.rate_max = 768000,
 		.formats = I2S_FORMATS,
 	},
 	.ops = &sun8i_i2s_dai_ops,
@@ -767,9 +774,9 @@ static const struct snd_pcm_hardware sun8i_i2s_pcm_hardware = {
 		SNDRV_PCM_INFO_MMAP | SNDRV_PCM_INFO_MMAP_VALID |
 		SNDRV_PCM_INFO_PAUSE | SNDRV_PCM_INFO_RESUME,
 	.formats = I2S_FORMATS,
-	.rates = SNDRV_PCM_RATE_8000_384000 | SNDRV_PCM_RATE_KNOT,
+	.rates = SNDRV_PCM_RATE_8000_768000 | SNDRV_PCM_RATE_KNOT,
 	.rate_min = 8000,
-	.rate_max = 384000,
+	.rate_max = 768000,
 	.channels_min = 1,
 	.channels_max = 8,
 	.buffer_bytes_max = 1024 * 1024,
