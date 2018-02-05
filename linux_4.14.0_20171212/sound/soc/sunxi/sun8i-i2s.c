@@ -239,24 +239,32 @@ static int sun8i_i2s_set_clock(struct priv *priv, unsigned long rate)
 	unsigned long freq;
 	int ret, i, div;
 	static const u8 div_tb[] = {
-		1, 2, 4, 6, 8, 12, 16, 24,
+		1, 2, 4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128, 176, 192
 	};
 
 	DBGOUT("%s: rate = %lu.", __func__, rate);
 
 	/* compute the sys clock rate and divide values */
-	if (rate % 1000 == 0)
-		freq = 24576000;
-	else
-		freq = 22579200;
-	div = freq / 2 / PCM_LRCK_PERIOD / rate;
-	
-	if( div == 0 )
-	{
+	if ((rate % 11025) == 0)
+		freq	= 22579200;
+	else if ((rate % 8000) == 0)
+		freq	= 24576000;
+	else {
+		pr_info("Setting sysclk rate %lu is not supported.\n", rate );
+		return -EINVAL;
+	}
+
+	while( freq < (rate * 2 * PCM_LRCK_PERIOD) ) {
 		freq	*= 2;
-		div		= 1;
+	}
+
+	if (100000000 < freq) {
+		pr_info("Setting sysclk rate %lu is not supported.\n", rate );
+		return -EINVAL;
 	}
 	
+	div = freq / 2 / PCM_LRCK_PERIOD / rate;
+
 	if (priv->type == SOC_A83T)
 		div /= 2;			/* bclk_div==0 => mclk/2 */
 	for (i = 0; i < ARRAY_SIZE(div_tb) - 1; i++)
@@ -754,9 +762,9 @@ static struct snd_soc_dai_driver sun8i_i2s_dai = {
 		.stream_name = "Playback",
 		.channels_min = 1,
 		.channels_max = 8,
-		.rates = SNDRV_PCM_RATE_8000_768000 | SNDRV_PCM_RATE_KNOT,
+		.rates = SNDRV_PCM_RATE_CONTINUOUS,
 		.rate_min = 8000,
-		.rate_max = 768000,
+		.rate_max = 1536000,
 		.formats = I2S_FORMATS,
 	},
 	.ops = &sun8i_i2s_dai_ops,
@@ -774,9 +782,9 @@ static const struct snd_pcm_hardware sun8i_i2s_pcm_hardware = {
 		SNDRV_PCM_INFO_MMAP | SNDRV_PCM_INFO_MMAP_VALID |
 		SNDRV_PCM_INFO_PAUSE | SNDRV_PCM_INFO_RESUME,
 	.formats = I2S_FORMATS,
-	.rates = SNDRV_PCM_RATE_8000_768000 | SNDRV_PCM_RATE_KNOT,
+	.rates = SNDRV_PCM_RATE_CONTINUOUS,
 	.rate_min = 8000,
-	.rate_max = 768000,
+	.rate_max = 1536000,
 	.channels_min = 1,
 	.channels_max = 8,
 	.buffer_bytes_max = 1024 * 1024,
